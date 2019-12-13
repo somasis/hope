@@ -1,0 +1,3 @@
+= `hope`
+
+`hope` is a POSIX sh test runner.
