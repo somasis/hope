@@ -1,5 +1,6 @@
 #!/bin/sh
 
+hope="${0##*/}"
 export test_success=0
 export test_failed=0
 export test_num=0
@@ -42,27 +43,45 @@ expect_exit() {
     "${@}" || err=$?
     if [ "${err}" -eq "${expecting}" ];then
         test_success=$(( test_success + 1 ))
-        printf "${color_green}ok %s%s${color_reset}\n" "${test_num}" "${description:+ - $description}"
+        hope_test_output success
     else
         test_failed=$(( test_failed + 1 ))
-        printf "${color_red}not ok %s%s${color_reset}\n" "${test_num}" "${description:+ - $description}"
+        hope_test_output failed
         printf '# %s\n' "$*"
     fi
     description=
     err=
 }
 
+hope_test_error() {
+    printf '%s: %s\n' "${hope}" "$*" >&2
+    exit 1
+}
+
+hope_test_output() {
+    case "${1}" in
+        success)
+            printf "${color_green}ok %s%s${color_reset}\n" "${test_num}" "${description:+ - $description}"
+            ;;
+        failed)
+            printf "${color_red}not ok %s%s${color_reset}\n" "${test_num}" "${description:+ - $description}"
+            ;;
+        ''|*)
+            hope_test_error "hope_test_error: usage: <success|failed>"
+            ;;
+    esac
+    shift
+}
+
 new_set() {
     printf "${color_bold}# %s${color_reset}\n" "$@"
 }
 
-me=$(readlink -f "${0}")
-
-for f in "${topdir}"/test/*/*.sh;do
-    printf '1..%s\n' $(grep -Ec '^expect_(exit|out) ' "${topdir}"/test/*/*.sh)
-    f_pretty="${f##$topdir/test/}"
-    new_set "${f_pretty}"
-    . "${f}"
+while [ $# -gt 0 ];do
+    new_set "${1##*/}"
+#    printf '1..%s\n' $(grep "${1}")
+    . "${1}"
+    shift
 done
 
 [ "${test_failed}" -eq 0 ] || exit 1
