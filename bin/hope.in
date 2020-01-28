@@ -78,7 +78,8 @@ new_set() {
 }
 
 while [ $# -gt 0 ];do
-    new_set "${1##*/}"
+    set=$(basename "${1}" .sh)
+    new_set "${set}"
 #    printf '1..%s\n' $(grep "${1}")
     . "${1}"
     shift
