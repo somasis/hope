@@ -3,16 +3,11 @@
 
 == Name
 
-*hope* - a TAP-compliant, POSIX sh test harness
+hope - a TAP-compliant, POSIX sh test harness
 
 == Synopsis
 
-*hope* _TEST_ ...
-
-== Options
-
-*-a*::
-    Check if _any_ string matches, not all.
+*hope* _FILE_ ...
 
 == Exit status
 
@@ -20,29 +15,66 @@
     All tests passed.
 
 *1*::
-    A test failed.
+    At least one test failed.
 
 == Examples
 
-[source,shell]
+Imagine you have a project, and you want to test a utility named `match`.
+
+.test/match.sh
+[source,sh]
 ----
-if match -E "[0-9]{4}-[0-9]{2}-[0-9]{2}" "1998-05-28";then
-    echo "that was a date!"
-else
-    echo "please give a date instead"
-fi
+#!/usr/bin/hope
+
+date_right=2019-05-28
+date_wrong=20x9-e3-93
+date_regex="[0-9]{4}-(0[1-9]|1[0-2])-([0-2][0-9]|3[01])"
+
+expect_exit "does it even work?" 0 \
+	match -E "${date_regex}" "${date_right}"
+expect_exit "fails with no match" 1 \
+	match -E "${date_regex}" "${date_wrong}"
+expect_exit "must match all, one match, one not matching" 1 \
+	match -E "${date_regex}" "${date_right}" "${date_wrong}"
+expect_exit "must match any, one match, one not matching" 0 \
+	match -a -E "${date_regex}" "${date_right}" "${date_wrong}"
+expect_exit "must match any, none matching" 1 \
+	match -a -E "${date_regex}" "${date_wrong}" "${date_wrong}"
 ----
 
-== See also
+.Makefile
+[source,makefile]
+----
+[...]
 
-*bats(1)*, *bats(7)*
+check:
+	hope test/match.sh
 
-== Authors
+[...]
+----
 
-include::AUTHORS[]
+.Output
+[literal]
+----
+$ make check
+hope test/match.sh
+# match
+1..5
+ok 1 - does it even work?
+ok 2 - fails with no match
+ok 3 - must match all, one match, one not matching
+ok 4 - must match any, one match, one not matching
+ok 5 - must match any, none matching
+----
+
+== Bugs
 
 There's an IRC channel for this and other utilities at irc://irc.freenode.net/#mutiny. Please don't
 hesitate to message if you have questions.
+
+== See also
+
+*bats*(1), *bats*(7)
 
 == License
 

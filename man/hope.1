@@ -2,7 +2,7 @@
 .\"     Title: hope
 .\"    Author: [see the "AUTHOR(S)" section]
 .\" Generator: Asciidoctor 2.0.10
-.\"      Date: 2019-12-13
+.\"      Date: 2020-01-28
 .\"    Manual: \ \&
 .\"    Source: \ \&
 .\"  Language: English
@@ -31,13 +31,7 @@
 hope \- a TAP\-compliant, POSIX sh test harness
 .SH "SYNOPSIS"
 .sp
-\fBhope\fP \fITEST\fP ...
-.SH "OPTIONS"
-.sp
-\fB\-a\fP
-.RS 4
-Check if \fIany\fP string matches, not all.
-.RE
+\fBhope\fP \fIFILE\fP ...
 .SH "EXIT STATUS"
 .sp
 \fB0\fP
@@ -47,31 +41,75 @@ All tests passed.
 .sp
 \fB1\fP
 .RS 4
-A test failed.
+At least one test failed.
 .RE
 .SH "EXAMPLES"
 .sp
+Imagine you have a project, and you want to test a utility named \f(CRmatch\fP.
+.sp
+.B test/match.sh
+.br
+.sp
 .if n .RS 4
 .nf
-if match \-E "[0\-9]{4}\-[0\-9]{2}\-[0\-9]{2}" "1998\-05\-28";then
-    echo "that was a date!"
-else
-    echo "please give a date instead"
-fi
+#!/usr/bin/hope
+
+date_right=2019\-05\-28
+date_wrong=20x9\-e3\-93
+date_regex="[0\-9]{4}\-(0[1\-9]|1[0\-2])\-([0\-2][0\-9]|3[01])"
+
+expect_exit "does it even work?" 0 \(rs
+        match \-E "${date_regex}" "${date_right}"
+expect_exit "fails with no match" 1 \(rs
+        match \-E "${date_regex}" "${date_wrong}"
+expect_exit "must match all, one match, one not matching" 1 \(rs
+        match \-E "${date_regex}" "${date_right}" "${date_wrong}"
+expect_exit "must match any, one match, one not matching" 0 \(rs
+        match \-a \-E "${date_regex}" "${date_right}" "${date_wrong}"
+expect_exit "must match any, none matching" 1 \(rs
+        match \-a \-E "${date_regex}" "${date_wrong}" "${date_wrong}"
 .fi
 .if n .RE
-.SH "SEE ALSO"
 .sp
-\fBbats(1)\fP, \fBbats(7)\fP
-.SH "AUTHORS"
+.B Makefile
+.br
 .sp
-Kylie McClain <\c
-.MTO "kylie\(atsomas.is" "" ">"
+.if n .RS 4
+.nf
+[...]
+
+check:
+        hope test/match.sh
+
+[...]
+.fi
+.if n .RE
+.sp
+.B Output
+.br
+.sp
+.if n .RS 4
+.nf
+$ make check
+hope test/match.sh
+# match
+1..5
+ok 1 \- does it even work?
+ok 2 \- fails with no match
+ok 3 \- must match all, one match, one not matching
+ok 4 \- must match any, one match, one not matching
+ok 5 \- must match any, none matching
+.fi
+.if n .RE
+.SH "BUGS"
 .sp
 There\(cqs an IRC channel for this and other utilities at \c
 .URL "irc://irc.freenode.net/#mutiny" "" "."
 Please don\(cqt
 hesitate to message if you have questions.
+.SH "SEE ALSO"
+.sp
+\fBbats\fP(1), \fBbats\fP(7)
 .SH "LICENSE"
 .sp
 \fBhope\fP is in the public domain.
