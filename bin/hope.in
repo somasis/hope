@@ -80,7 +80,7 @@ new_set() {
 while [ $# -gt 0 ];do
     set=$(basename "${1}" .sh)
     new_set "${set}"
-#    printf '1..%s\n' $(grep "${1}")
+    printf '1..%s\n' $(grep -Ec "^(expect_exit|expect_out)\s" "${1}")
     . "${1}"
     shift
 done
