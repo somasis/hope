@@ -1,3 +1,4 @@
 = `hope`
 
-`hope` is a POSIX sh test runner.
+`hope` (as in, I hope it works) is a POSIX sh test runner. It aims to be roughly
+http://testanything.org/[TAP compliant].
